@@ -1,0 +1,76 @@
+npm install bcrypt jsonwebtoken
+
+app.post("/signup", async (req, res) => {
+  const { email, password } = req.body;
+
+  const hashed = await bcrypt.hash(password, 10);
+
+  const user = new User({ email, password: hashed });
+  await user.save();
+
+  res.json({ message: "User created" });
+});
+
+app.post("/login", async (req, res) => {
+  const user = await User.findOne({ email: req.body.email });
+
+  if (!user) return res.status(400).send("User not found");
+
+  const valid = await bcrypt.compare(req.body.password, user.password);
+
+  if (!valid) return res.status(400).send("Wrong password");
+
+  const token = jwt.sign({ id: user._id }, "SECRET_KEY");
+
+  res.json({ token });
+});
+
+function auth(req, res, next) {
+  const token = req.headers.authorization;
+  if (!token) return res.sendStatus(401);
+
+  try {
+    const decoded = jwt.verify(token, "SECRET_KEY");
+    req.user = decoded;
+    next();
+  } catch {
+    res.sendStatus(403);
+  }
+}
+
+
+User {
+  email: String,
+  password: String,
+  plan: "free" | "pro",
+  credits: Number,
+  createdAt: Date
+}
+
+if (user.credits <= 0) {
+  return res.send("Limit reached");
+}
+
+User Signup/Login
+ ↓
+Dashboard Access
+ ↓
+Input URLs / Upload File
+ ↓
+Extractor Engine
+ ↓
+Analyzer + Scoring
+ ↓
+Results
+ ↓
+Download
+
+posthunter.com
+
+
+
+
+
+
+
+
